@@ -5,6 +5,11 @@ Computer Systems Architecture Course
 Assignment 1
 March 2021
 """
+
+# Dataclass is imported only for unittesting
+from product import Tea
+
+import unittest
 import random
 import string
 from threading import Lock
@@ -29,9 +34,6 @@ class Marketplace:
 
         self.producer_queues = {}
         self.carts = {}
-
-        self.products = []
-        self.products_lock = Lock()
 
     def register_producer(self):
         """
@@ -133,3 +135,126 @@ class Marketplace:
             return self.generate_id(existing_ids)
         else:
             return new_id
+
+
+class TestMarketplace(unittest.TestCase):
+    """
+    Unittest for the Marketplace class
+    """
+
+    def setUp(self):
+        """
+        Set up a basic marketplace and a product
+        """
+        self.marketplace = Marketplace(1)
+        self.test_product = Tea(name="Linden", type="Herbal", price=5)
+
+    def test_publish(self):
+        """
+        Test publish method
+        """
+
+        # Register a new producer
+        producer_id = self.marketplace.register_producer()
+
+        # check if the new producer can publish a product
+        assert self.marketplace.publish(producer_id, self.test_product) is True
+
+        # check if the product is in the marketplace
+        assert self.test_product in self.marketplace.producer_queues[producer_id]
+
+        # Make sure producer can't publish another product once it has reached its queue size
+        assert self.marketplace.publish(
+            producer_id, self.test_product) is False
+
+    def test_new_cart(self):
+        """
+        Test new_cart method
+        """
+        # Create a new cart
+        cart_id = self.marketplace.new_cart()
+
+        # Check if the cart is in the marketplace
+        assert cart_id in self.marketplace.carts.keys()
+
+    def test_add_to_cart(self):
+        """
+        Test add_to_cart method
+        """
+        # Register a new producer
+        producer_id = self.marketplace.register_producer()
+
+        # Create a new cart
+        cart_id = self.marketplace.new_cart()
+
+        # Publish a product to the marketplace
+        self.marketplace.publish(producer_id, self.test_product)
+
+        # Check if the product can be added to the cart
+        assert self.marketplace.add_to_cart(cart_id, self.test_product) is True
+
+        # Check if the product is in the cart
+        assert (self.test_product,
+                producer_id) in self.marketplace.carts[cart_id]
+
+        # Make sure the product can't be added to the cart again since it doesn't exist in the marketplace anymore
+        assert self.marketplace.add_to_cart(
+            cart_id, self.test_product) is False
+
+    def test_remove_from_cart(self):
+        """
+        Test remove_from_cart method
+        """
+        # Register a new producer
+        producer_id = self.marketplace.register_producer()
+
+        # Create a new cart
+        cart_id = self.marketplace.new_cart()
+
+        # Publish a product to the marketplace
+        self.marketplace.publish(producer_id, self.test_product)
+
+        # Add the product to the cart
+        self.marketplace.add_to_cart(cart_id, self.test_product)
+
+        # Remove the product from the cart
+        self.marketplace.remove_from_cart(cart_id, self.test_product)
+
+        # Check and make sure the product is not in the cart
+        assert (self.test_product,
+                producer_id) not in self.marketplace.carts[cart_id]
+
+        # Check if the product is back in the marketplace
+        assert self.test_product in self.marketplace.producer_queues[producer_id]
+
+    def test_place_order(self):
+        """
+        Test place_order method
+        """
+        # Register a new producer
+        producer_id = self.marketplace.register_producer()
+
+        # Create a new cart
+        cart_id = self.marketplace.new_cart()
+
+        # Publish a product to the marketplace
+        self.marketplace.publish(producer_id, self.test_product)
+
+        # Add the product to the cart
+        self.marketplace.add_to_cart(cart_id, self.test_product)
+
+        # Place the order and make sure there is a list with the product that was added to the cart
+        assert self.marketplace.place_order(cart_id) == [self.test_product]
+
+        # Check if the cart is empty
+        assert self.marketplace.carts[cart_id] == []
+
+    def test_generate_id(self):
+        """
+        Test generate_id method
+        """
+        # generate a new id
+        new_id = self.marketplace.generate_id([])
+
+        # check if the id is a string of 8 characters
+        assert len(new_id) == 8
