@@ -9,10 +9,12 @@ March 2021
 # Dataclass is imported only for unittesting
 from tema.product import Tea
 
+
 import unittest
 import random
 import string
-from threading import Lock
+
+from tema.setup_logger import logger
 
 ALPHABET = string.ascii_lowercase + string.digits
 
@@ -37,6 +39,8 @@ class Marketplace:
 
         # Create a dictionary with all the carts
         self.carts = {}
+        logger.info("Marketplace of size {} created".format(
+            queue_size_per_producer))
 
     def register_producer(self):
         """
@@ -47,6 +51,8 @@ class Marketplace:
 
         # Create a queue for the producer
         self.producer_queues[id] = []
+
+        logger.info("Producer {} registered".format(id))
         return id
 
     def publish(self, producer_id, product):
@@ -62,12 +68,18 @@ class Marketplace:
         :returns True or False. If the caller receives False, it should wait and then try again.
         """
         # Check if the queue of the producer is full, return False if it is
+        logger.info("Producer {} is publishing {}".format(
+            producer_id, product))
         count = len(self.producer_queues[producer_id])
         if count >= self.queue_size_per_producer:
+            logger.info("Producer {} queue is full".format(producer_id))
             return False
 
         # Add the product to the queue
         self.producer_queues[producer_id].append(product)
+        logger.info("Producer {} succesfully published {}".format(
+            producer_id, product))
+
         return True
 
     def new_cart(self):
@@ -84,6 +96,7 @@ class Marketplace:
 
         # Create a new cart for that id
         self.carts[id] = []
+        logger.info("Cart {} created".format(id))
         return id
 
     def add_to_cart(self, cart_id, product):
@@ -98,13 +111,19 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again
         """
+
+        logger.info(
+            "Trying to add {} to cart {}".format(product, cart_id))
         # Look for the product in all the queues
         for id in self.producer_queues.keys():
             if product in self.producer_queues[id]:
                 # If it is found, add it to the cart and remove it from the queue
                 self.carts[cart_id].append((product, id))
                 self.producer_queues[id].remove(product)
+                logger.info("{} added to cart {}".format(product, cart_id))
                 return True
+
+        logger.info("Couldn't find {} in the marketplace".format(product))
         return False
 
     def remove_from_cart(self, cart_id, product):
@@ -118,12 +137,17 @@ class Marketplace:
         :param product: the product to remove from cart
         """
         # Look for the product in the cart
+        logger.info("Trying to remove {} from cart {}".format(product, cart_id))
         for (prod, id) in self.carts[cart_id]:
             if prod == product:
                 # When found, remove it from the cart and add it back to the procuder queue
                 self.carts[cart_id].remove((product, id))
                 self.producer_queues[id].append(product)
+
+                logger.info("{} removed from cart {}".format(product, cart_id))
                 return
+
+        logger.info("Couldn't find {} in the cart".format(product))
 
     def place_order(self, cart_id):
         """
@@ -133,6 +157,7 @@ class Marketplace:
         :param cart_id: id cart
         """
         # Create a list with all the products in the cart
+        logger.info("Placing order for cart {}".format(cart_id))
         final_cart = [f[0] for f in self.carts[cart_id]]
         self.carts[cart_id] = []
         return final_cart
@@ -144,6 +169,9 @@ class Marketplace:
 
         :type existing_ids: List
         :param existing_ids: List of existing ids
+
+        :type existing_ids: bool
+        :param existing_ids: To generate only ints or not
         """
         # String of characters that can be chosen for the random string
         characters = ALPHABET if only_ints is False else string.digits
