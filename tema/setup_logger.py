@@ -1,3 +1,7 @@
+"""
+Setup logger for the application.
+"""
+
 import logging
 from logging.handlers import RotatingFileHandler
 import time
@@ -8,13 +12,13 @@ logger.propagate = False
 
 logging.basicConfig(filename="marketplace.log", level=logging.INFO)
 
-rfh_logger = RotatingFileHandler('marketplace.log', backupCount=5)
-rfh_logger.setLevel(logging.INFO)
+RFH_LOGGER = RotatingFileHandler('marketplace.log', backupCount=5)
+RFH_LOGGER.setLevel(logging.INFO)
 
-rfh_formatter = logging.Formatter(
+RFH_FORMATTER = logging.Formatter(
     '%(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S")
-rfh_formatter.converter = time.gmtime
+RFH_FORMATTER.converter = time.gmtime
 
-rfh_logger.setFormatter(rfh_formatter)
+RFH_LOGGER.setFormatter(RFH_FORMATTER)
 
-logger.addHandler(rfh_logger)
+logger.addHandler(RFH_LOGGER)

@@ -6,13 +6,13 @@ Assignment 1
 March 2021
 """
 
-# Dataclass is imported only for unittesting
-from tema.product import Tea
-
 
 import unittest
 import random
 import string
+
+# Dataclass is imported only for unittesting
+from tema.product import Tea
 
 from tema.setup_logger import logger
 
@@ -47,13 +47,13 @@ class Marketplace:
         Returns an id for the producer that calls this.
         """
         # Generate an id for the producer
-        id = self.generate_id(self.producer_queues.keys())
+        new_id = self.generate_id(self.producer_queues.keys())
 
         # Create a queue for the producer
-        self.producer_queues[id] = []
+        self.producer_queues[new_id] = []
 
-        logger.info("Producer {} registered".format(id))
-        return id
+        logger.info("Producer {} registered".format(new_id))
+        return new_id
 
     def publish(self, producer_id, product):
         """
@@ -92,12 +92,12 @@ class Marketplace:
         cart_ids = [f[0] for f in self.carts.items()]
 
         # Make it int as the cart_id is an int
-        id = int(self.generate_id(cart_ids, only_ints=True))
+        new_id = int(self.generate_id(cart_ids, only_ints=True))
 
         # Create a new cart for that id
-        self.carts[id] = []
-        logger.info("Cart {} created".format(id))
-        return id
+        self.carts[new_id] = []
+        logger.info("Cart {} created".format(new_id))
+        return new_id
 
     def add_to_cart(self, cart_id, product):
         """
@@ -182,8 +182,8 @@ class Marketplace:
         # If the id is already in the list, generate another one
         if new_id in existing_ids:
             return self.generate_id(existing_ids, only_ints)
-        else:
-            return new_id
+
+        return new_id
 
 
 class TestMarketplace(unittest.TestCase):
@@ -246,7 +246,8 @@ class TestMarketplace(unittest.TestCase):
         assert (self.test_product,
                 producer_id) in self.marketplace.carts[cart_id]
 
-        # Make sure the product can't be added to the cart again since it doesn't exist in the marketplace anymore
+        # Make sure the product can't be added to the cart again since
+        # it doesn't exist in the marketplace anymore
         assert self.marketplace.add_to_cart(
             cart_id, self.test_product) is False
 

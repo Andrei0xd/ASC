@@ -46,7 +46,7 @@ class Consumer(Thread):
         for cart in self.carts:
             # Submit each operation to the marketplace
             for operation in cart:
-                for i in range(operation["quantity"]):
+                for _ in range(operation["quantity"]):
                     if operation["type"] == "add":
                         accepted = False
                         # If the product can't be added, wait retry_wait_time seconds and try again

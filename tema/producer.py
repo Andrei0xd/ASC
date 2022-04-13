@@ -44,16 +44,16 @@ class Producer(Thread):
         while True:
             # Iterate through the products
             for product in self.products:
-                p = product[0]
+                prod = product[0]
                 quantity = product[1]
                 wait_time = product[2]
                 # Publish each product for quantity times
-                for i in range(quantity):
+                for _ in range(quantity):
                     accepted = False
 
-                    # If the product can be published, wait republish_wait_time seconds and try again
+                    # If the product can be published, wait republish_wait_time sec and try again
                     while not accepted:
-                        accepted = self.marketplace.publish(self.id, p)
+                        accepted = self.marketplace.publish(self.id, prod)
                         if not accepted:
                             sleep(self.republish_wait_time)
 
