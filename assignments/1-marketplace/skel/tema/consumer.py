@@ -42,11 +42,14 @@ class Consumer(Thread):
         self.cart_id = self.marketplace.new_cart()
 
     def run(self):
+        # Iterate through the carts
         for cart in self.carts:
+            # Submit each operation to the marketplace
             for operation in cart:
                 for i in range(operation["quantity"]):
                     if operation["type"] == "add":
                         accepted = False
+                        # If the product can't be added, wait retry_wait_time seconds and try again
                         while not accepted:
                             accepted = self.marketplace.add_to_cart(
                                 self.cart_id, operation["product"])
@@ -55,6 +58,9 @@ class Consumer(Thread):
                         accepted = self.marketplace.remove_from_cart(
                             self.cart_id, operation["product"])
 
+            # Place the order
             final_cart = self.marketplace.place_order(self.cart_id)
+
+            # Print the order result
             for item in final_cart:
                 print(f"{self.name} bought {item}\n")

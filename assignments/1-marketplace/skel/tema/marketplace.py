@@ -7,7 +7,7 @@ March 2021
 """
 
 # Dataclass is imported only for unittesting
-from product import Tea
+from tema.product import Tea
 
 import unittest
 import random
@@ -32,14 +32,20 @@ class Marketplace:
         """
         self.queue_size_per_producer = queue_size_per_producer
 
+        # Create a dictionary with the queues for each producer
         self.producer_queues = {}
+
+        # Create a dictionary with all the carts
         self.carts = {}
 
     def register_producer(self):
         """
         Returns an id for the producer that calls this.
         """
+        # Generate an id for the producer
         id = self.generate_id(self.producer_queues.keys())
+
+        # Create a queue for the producer
         self.producer_queues[id] = []
         return id
 
@@ -55,11 +61,12 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again.
         """
-
+        # Check if the queue of the producer is full, return False if it is
         count = len(self.producer_queues[producer_id])
         if count >= self.queue_size_per_producer:
             return False
 
+        # Add the product to the queue
         self.producer_queues[producer_id].append(product)
         return True
 
@@ -69,8 +76,13 @@ class Marketplace:
 
         :returns an int representing the cart_id
         """
+        # Generate an id for the cart
         cart_ids = [f[0] for f in self.carts.items()]
+
+        # Make it int as the cart_id is an int
         id = int(self.generate_id(cart_ids, only_ints=True))
+
+        # Create a new cart for that id
         self.carts[id] = []
         return id
 
@@ -86,9 +98,10 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again
         """
-
+        # Look for the product in all the queues
         for id in self.producer_queues.keys():
             if product in self.producer_queues[id]:
+                # If it is found, add it to the cart and remove it from the queue
                 self.carts[cart_id].append((product, id))
                 self.producer_queues[id].remove(product)
                 return True
@@ -104,8 +117,10 @@ class Marketplace:
         :type product: Product
         :param product: the product to remove from cart
         """
+        # Look for the product in the cart
         for (prod, id) in self.carts[cart_id]:
             if prod == product:
+                # When found, remove it from the cart and add it back to the procuder queue
                 self.carts[cart_id].remove((product, id))
                 self.producer_queues[id].append(product)
                 return
@@ -117,6 +132,7 @@ class Marketplace:
         :type cart_id: Int
         :param cart_id: id cart
         """
+        # Create a list with all the products in the cart
         final_cart = [f[0] for f in self.carts[cart_id]]
         self.carts[cart_id] = []
         return final_cart
@@ -129,10 +145,15 @@ class Marketplace:
         :type existing_ids: List
         :param existing_ids: List of existing ids
         """
+        # String of characters that can be chosen for the random string
         characters = ALPHABET if only_ints is False else string.digits
+
+        # Randomly generate a string of 8 characters
         new_id = ''.join(random.choices(characters, k=8))
+
+        # If the id is already in the list, generate another one
         if new_id in existing_ids:
-            return self.generate_id(existing_ids)
+            return self.generate_id(existing_ids, only_ints)
         else:
             return new_id
 
